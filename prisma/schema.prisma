@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  name      String
+  nameKo    String?  // 메뉴명(한글)
+  category  String?  // 예: 메인, 사이드, 음료
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  recipe    Recipe?
+}
+
+model Recipe {
+  id          String        @id @default(cuid())
+  menuId      String        @unique
+  menu        Menu          @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  servings    Int           @default(1)   // 인분 기준
+  description String?       // 요약 설명
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  ingredients Ingredient[]
+  steps       RecipeStep[]
+}
+
+model Ingredient {
+  id       String  @id @default(cuid())
+  recipeId String
+  recipe   Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  name     String
+  amount   String  // 예: "2개", "100g", "적당히"
+  sortOrder Int    @default(0)
+}
+
+model RecipeStep {
+  id        String   @id @default(cuid())
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  stepOrder Int
+  content   String
+  imageUrl  String?
+}
