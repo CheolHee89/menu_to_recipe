@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { InstallPrompt } from "./components/InstallPrompt";
 
 type Menu = {
   id: string;
@@ -46,6 +47,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1 px-4 py-5 pb-8">
+        <InstallPrompt />
         {isLoading && (
           <div className="flex justify-center py-16">
             <div className="h-8 w-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
