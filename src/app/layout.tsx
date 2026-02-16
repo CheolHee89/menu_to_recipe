@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "메뉴 → 레시피",
   description: "식당 직원용 메뉴 선택 시 레시피를 보여주는 서비스",
+  formatDetection: { telephone: false, email: false, address: false },
 };
 
 export const viewport = {
@@ -20,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="min-h-full">
-      <body className="antialiased min-h-screen text-stone-900" style={{ background: "var(--bg)" }}>
+    <html lang="ko" className="min-h-full" suppressHydrationWarning>
+      <body className="antialiased min-h-screen text-stone-900" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
