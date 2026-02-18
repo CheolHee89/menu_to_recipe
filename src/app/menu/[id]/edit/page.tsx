@@ -33,6 +33,13 @@ async function updateMenu(id: string, body: { name: string; nameKo?: string; cat
   return data;
 }
 
+async function deleteMenu(id: string) {
+  const res = await fetch(`/api/menus/${id}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "삭제에 실패했습니다.");
+  return data;
+}
+
 export default function EditMenuPage() {
   const params = useParams();
   const router = useRouter();
@@ -67,6 +74,14 @@ export default function EditMenuPage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteMenu(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["menus"] });
+      router.push("/");
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -76,6 +91,11 @@ export default function EditMenuPage() {
       category: category.trim() || undefined,
       sortOrder: Number.isNaN(sortOrder) ? 0 : sortOrder,
     });
+  };
+
+  const handleDelete = () => {
+    if (!confirm("이 메뉴를 삭제할까요? 연결된 레시피도 함께 삭제됩니다.")) return;
+    deleteMutation.mutate();
   };
 
   if (isLoading || !menu) {
@@ -205,6 +225,20 @@ export default function EditMenuPage() {
             </Link>
           </div>
         </form>
+
+        <div className="mt-8 pt-6 border-t border-stone-200">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending}
+            className="w-full rounded-xl font-medium py-3 text-red-600 border border-red-200 bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+          >
+            {deleteMutation.isPending ? "삭제 중…" : "메뉴 삭제"}
+          </button>
+          {deleteMutation.isError && (
+            <p className="mt-2 text-red-600 text-sm text-center">{(deleteMutation.error as Error).message}</p>
+          )}
+        </div>
       </main>
     </div>
   );

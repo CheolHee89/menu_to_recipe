@@ -1,8 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { InstallPrompt } from "./components/InstallPrompt";
+import { SwipeableMenuCard } from "./components/SwipeableMenuCard";
 
 type Menu = {
   id: string;
@@ -19,10 +20,25 @@ async function fetchMenus(): Promise<Menu[]> {
   return res.json();
 }
 
+async function deleteMenu(id: string) {
+  const res = await fetch(`/api/menus/${id}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "삭제에 실패했습니다.");
+  return data;
+}
+
 export default function Home() {
+  const queryClient = useQueryClient();
   const { data: menus, isLoading, error } = useQuery({
     queryKey: ["menus"],
     queryFn: fetchMenus,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteMenu,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["menus"] });
+    },
   });
 
   return (
@@ -69,29 +85,10 @@ export default function Home() {
           <ul className="space-y-3">
             {menus.map((menu) => (
               <li key={menu.id}>
-                <Link
-                  href={`/menu/${menu.id}`}
-                  className="app-card block p-4 active:scale-[0.99] transition-transform"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-stone-900 text-lg truncate">
-                        {menu.nameKo ?? menu.name}
-                      </p>
-                      {menu.category && (
-                        <p className="text-xs text-stone-500 mt-0.5">{menu.category}</p>
-                      )}
-                    </div>
-                    {menu.recipe ? (
-                      <span className="shrink-0 text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-                        레시피
-                      </span>
-                    ) : (
-                      <span className="shrink-0 text-xs text-stone-400">미등록</span>
-                    )}
-                    <span className="text-stone-300">›</span>
-                  </div>
-                </Link>
+                <SwipeableMenuCard
+                  menu={menu}
+                  onDelete={(id) => deleteMutation.mutate(id)}
+                />
               </li>
             ))}
           </ul>
